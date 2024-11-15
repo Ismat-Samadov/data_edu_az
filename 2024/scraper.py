@@ -17,7 +17,7 @@ def scrape_certificate_range(start_id, end_id, base_url="https://data.edu.az/az/
     output_dir (str): Directory to save CSV files
     
     Returns:
-    pd.DataFrame: Combined data from all successfully scraped certificates
+    pd.DataFrame: Combined data from all scraped certificates
     """
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
@@ -29,9 +29,6 @@ def scrape_certificate_range(start_id, end_id, base_url="https://data.edu.az/az/
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
-    
-    # Calculate total number of certificates to scrape
-    total_certificates = end_id - start_id + 1
     
     # Create progress bar
     for certificate_id in tqdm(range(start_id, end_id + 1), desc="Scraping Certificates"):
@@ -59,29 +56,42 @@ def scrape_certificate_range(start_id, end_id, base_url="https://data.edu.az/az/
                         'Verification URL': url,
                         'Status': 'Success'
                     }
-                    all_certificates.append(certificate_data)
                 else:
                     # Page exists but no certificate data
-                    all_certificates.append({
+                    certificate_data = {
                         'Certificate ID': certificate_id,
-                        'Status': 'No Certificate Data',
-                        'Verification URL': url
-                    })
+                        'Course Name': '',
+                        'Student Name': '',
+                        'Completion Date': '',
+                        'Duration': '',
+                        'Verification URL': url,
+                        'Status': 'No Certificate Data'
+                    }
             else:
                 # Page doesn't exist
-                all_certificates.append({
+                certificate_data = {
                     'Certificate ID': certificate_id,
-                    'Status': f'Failed (Status: {response.status_code})',
-                    'Verification URL': url
-                })
+                    'Course Name': '',
+                    'Student Name': '',
+                    'Completion Date': '',
+                    'Duration': '',
+                    'Verification URL': url,
+                    'Status': f'Failed (Status: {response.status_code})'
+                }
                 
         except requests.RequestException as e:
             # Handle request errors
-            all_certificates.append({
+            certificate_data = {
                 'Certificate ID': certificate_id,
-                'Status': f'Error: {str(e)}',
-                'Verification URL': url
-            })
+                'Course Name': '',
+                'Student Name': '',
+                'Completion Date': '',
+                'Duration': '',
+                'Verification URL': url,
+                'Status': f'Error: {str(e)}'
+            }
+        
+        all_certificates.append(certificate_data)
         
         # Add a small delay to avoid overwhelming the server
         time.sleep(0.5)
@@ -92,26 +102,23 @@ def scrape_certificate_range(start_id, end_id, base_url="https://data.edu.az/az/
     # Generate timestamp for unique filename
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
-    # Save both successful and failed attempts
-    csv_path = os.path.join(output_dir, f'certificate_range_{start_id}_to_{end_id}_{timestamp}.csv')
+    # Save the DataFrame to CSV
+    csv_path = os.path.join(output_dir, f'certificates_{start_id}_to_{end_id}_{timestamp}.csv')
     df.to_csv(csv_path, index=False, encoding='utf-8')
     
-    # Create separate CSV for successful scrapes only
-    successful_df = df[df['Status'] == 'Success']
-    success_csv_path = os.path.join(output_dir, f'successful_certificates_{start_id}_to_{end_id}_{timestamp}.csv')
-    successful_df.to_csv(success_csv_path, index=False, encoding='utf-8')
-    
+    # Print summary
+    successful = len(df[df['Status'] == 'Success'])
     print(f"\nTotal certificates processed: {len(df)}")
-    print(f"Successful scrapes: {len(successful_df)}")
-    print(f"Failed scrapes: {len(df) - len(successful_df)}")
-    print(f"\nAll results saved to: {csv_path}")
-    print(f"Successful results saved to: {success_csv_path}")
+    print(f"Successful scrapes: {successful}")
+    print(f"Failed scrapes: {len(df) - successful}")
+    print(f"\nResults saved to: {csv_path}")
     
     return df
 
-# Example usage
-start_id = 2103600
-end_id = 2103670
+if __name__ == "__main__":
+    # Example usage
+    start_id = 210300
+    end_id = 2103700
 
-print(f"Starting scrape for certificate IDs {start_id} to {end_id}")
-result_df = scrape_certificate_range(start_id, end_id)
+    print(f"Starting scrape for certificate IDs {start_id} to {end_id}")
+    result_df = scrape_certificate_range(start_id, end_id)
