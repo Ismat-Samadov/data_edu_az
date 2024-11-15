@@ -232,7 +232,7 @@ def run_max_speed_scraper(base_url: str, start_id: int, end_id: int, output_file
 
 if __name__ == "__main__":
     BASE_URL = "https://data.edu.az/en/verified/"
-    START_ID = 1
-    END_ID = 3330000  
+    START_ID = 2022
+    END_ID = 2022100  
     
     df = run_max_speed_scraper(BASE_URL, START_ID, END_ID)
