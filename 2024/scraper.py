@@ -122,3 +122,6 @@ if __name__ == "__main__":
 
     print(f"Starting scrape for certificate IDs {start_id} to {end_id}")
     result_df = scrape_certificate_range(start_id, end_id)
+    
+
+# for 2021 --> 2103599 -- 2103717  
