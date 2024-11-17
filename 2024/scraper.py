@@ -116,7 +116,6 @@ def scrape_certificate_range(start_id, end_id, base_url="https://data.edu.az/az/
     return df
 
 if __name__ == "__main__":
-    # Example usage
     start_id = 2011101
     end_id = 2011594
 
