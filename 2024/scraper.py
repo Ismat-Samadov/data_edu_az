@@ -94,7 +94,7 @@ def scrape_certificate_range(start_id, end_id, base_url="https://data.edu.az/az/
         all_certificates.append(certificate_data)
         
         # Add a small delay to avoid overwhelming the server
-        time.sleep(0.5)
+        time.sleep(0.2)
     
     # Create DataFrame from all collected data
     df = pd.DataFrame(all_certificates)
@@ -116,12 +116,13 @@ def scrape_certificate_range(start_id, end_id, base_url="https://data.edu.az/az/
     return df
 
 if __name__ == "__main__":
+    
     start_id = 2011101
-    end_id = 2011594
+    end_id = 2011994
 
     print(f"Starting scrape for certificate IDs {start_id} to {end_id}")
     result_df = scrape_certificate_range(start_id, end_id)
     
-# 2019 2020 2011101 2011594
+# 2019 2020 2011101 2011994
 # 2021 2103599  2103717 
 # 2022 2022001  2022995
