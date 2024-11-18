@@ -14,37 +14,33 @@ This project analyzes data from certificate completions for various courses betw
    ![Monthly Trends of Successful Completions](2024/certificate_data/monthly_trends_successful_completions.png)  
    This chart displays monthly trends in successful completions, highlighting engagement spikes and troughs.
 
-3. **Distribution of Successful Certificates by Year**  
-   ![Distribution of Successful Certificates by Year](2024/certificate_data/distribution_by_year.png)  
-   This chart shows how successful completions are distributed across different years.
-
-4. **Comparison of Successful vs. Unsuccessful Certificates**  
+3. **Comparison of Successful vs. Unsuccessful Certificates**  
    ![Comparison of Successful vs. Unsuccessful Certificates](2024/certificate_data/success_vs_unsuccessful_comparison.png)  
    This pie chart compares the proportion of successful versus failed certificate completions.
 
-5. **Course Duration Distribution**  
+4. **Course Duration Distribution**  
    ![Course Duration Distribution](2024/certificate_data/duration_distribution.png)  
    This histogram shows the distribution of durations for successful completions.
 
-6. **Top Courses by Year**  
+5. **Top Courses by Year**  
    ![Top Courses by Year](2024/certificate_data/top_courses_by_year.png)  
    Displays the top-performing course for each year with the number of completions.
 
-7. **Short Courses Analysis**  
+6. **Short Courses Analysis**  
    ![Short Courses Analysis](2024/certificate_data/short_courses_analysis.png)  
    Highlights successful completions for courses shorter than 3 months.
 
-8. **Specific Course Analysis**  
+7. **Specific Course Analysis**  
    ![Specific Course Analysis](2024/certificate_data/specific_course_analysis.png)  
    Analyzes the distribution of successful completions for a specific course.
 
-9. **Heatmap of Course Completion Trends by Year and Month**  
+8. **Heatmap of Course Completion Trends by Year and Month**  
    ![Heatmap of Course Completion Trends](2024/certificate_data/heatmap_completion_trends.png)  
    Visualizes trends in course completions over the years and months using a heatmap.
 
-10. **Top Students with Multiple Successful Certificates**  
-    ![Top Students with Multiple Successful Certificates](2024/certificate_data/top_students_multiple_certificates.png)  
-    Shows students with multiple successful completions.
+9. **Top Students with Multiple Successful Certificates**  
+   ![Top Students with Multiple Successful Certificates](2024/certificate_data/top_students_multiple_certificates.png)  
+   Shows students with multiple successful completions.
 
 ---
 
