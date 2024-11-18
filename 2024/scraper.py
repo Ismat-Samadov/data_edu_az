@@ -117,8 +117,8 @@ def scrape_certificate_range(start_id, end_id, base_url="https://data.edu.az/az/
 
 if __name__ == "__main__":
     
-    start_id = 2011101
-    end_id = 2011994
+    start_id = 2023101
+    end_id = 2023999
 
     print(f"Starting scrape for certificate IDs {start_id} to {end_id}")
     result_df = scrape_certificate_range(start_id, end_id)
@@ -126,3 +126,4 @@ if __name__ == "__main__":
 # 2019 2020 2011101 2011994
 # 2021 2103599  2103717 
 # 2022 2022001  2022995
+# 2023 2023101  2023999
