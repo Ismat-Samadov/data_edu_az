@@ -1,0 +1,14 @@
+DATA.EDU.AZ CERTIFICATE ANALYTICS SUMMARY
+==================================================
+
+total_certificates: 1446
+total_students: 1223
+total_courses: 12
+years_operating: 7
+avg_annual_completions: 206.6
+top_course: Analysis and Reporting with Excel
+top_course_count: 462
+retention_rate: 13.7
+peak_year: 2024
+peak_year_count: 374
+yoy_growth_2024_2025: -38.0
