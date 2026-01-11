@@ -41,8 +41,8 @@ class CrashProofScraper:
         base_url="https://data.edu.az/az/verified/",
         output_file="data/certificates.csv",
         concurrent_limit=20,
-        timeout=10,
-        save_interval=50,
+        timeout=15,
+        save_interval=500,
         max_retries=5
     ):
         """
@@ -144,11 +144,7 @@ class CrashProofScraper:
             # Write to temporary file first
             df.to_csv(self.temp_file, index=False, encoding='utf-8')
 
-            # Validate the temp file
-            if not self._validate_csv(self.temp_file):
-                raise ValueError("Temporary file validation failed")
-
-            # Create backup of existing file
+            # Create backup of existing file (skip validation for speed)
             if self.output_file.exists():
                 shutil.copy2(self.output_file, self.backup_file)
 
@@ -359,19 +355,11 @@ class CrashProofScraper:
                         await asyncio.sleep(wait_time)
                         continue
                     else:
-                        certificate_data = {
-                            'Certificate ID': certificate_id,
-                            'Course Name': '',
-                            'Student Name': '',
-                            'Completion Date': '',
-                            'Duration': '',
-                            'Verification URL': url,
-                            'Status': 'Timeout (Max Retries)',
-                            'Scraped At': datetime.now().isoformat(),
-                            'Retry Count': attempt
-                        }
+                        # Timeout after max retries - skip like 404s (don't save)
                         pbar.update(1)
-                        return certificate_data
+                        self.processed_ids.add(certificate_id)
+                        self.failed_ids.add(certificate_id)
+                        return None
 
                 except aiohttp.ClientError as e:
                     if attempt < self.max_retries - 1:
@@ -379,19 +367,11 @@ class CrashProofScraper:
                         await asyncio.sleep(wait_time)
                         continue
                     else:
-                        certificate_data = {
-                            'Certificate ID': certificate_id,
-                            'Course Name': '',
-                            'Student Name': '',
-                            'Completion Date': '',
-                            'Duration': '',
-                            'Verification URL': url,
-                            'Status': f'Network Error: {str(e)[:50]}',
-                            'Scraped At': datetime.now().isoformat(),
-                            'Retry Count': attempt
-                        }
+                        # Network error after max retries - skip like 404s (don't save)
                         pbar.update(1)
-                        return certificate_data
+                        self.processed_ids.add(certificate_id)
+                        self.failed_ids.add(certificate_id)
+                        return None
 
                 except Exception as e:
                     # Unexpected error
@@ -459,11 +439,13 @@ class CrashProofScraper:
 
         # Create aiohttp session with retry and timeout settings
         connector = aiohttp.TCPConnector(
-            limit=self.concurrent_limit,
+            limit=self.concurrent_limit * 2,  # Allow more connections
+            limit_per_host=self.concurrent_limit,
+            ttl_dns_cache=300,  # Cache DNS for 5 minutes
             force_close=False,
             enable_cleanup_closed=True
         )
-        timeout_obj = aiohttp.ClientTimeout(total=self.timeout, connect=5)
+        timeout_obj = aiohttp.ClientTimeout(total=self.timeout, connect=3, sock_read=3)
 
         try:
             async with aiohttp.ClientSession(
@@ -608,17 +590,17 @@ async def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Full brute-force scan (default: 1 to 10,000,000 with 50 concurrent)
+  # Full brute-force scan (default: 1 to 300M with 100 concurrent)
   python scripts/scraper.py
 
   # Scan specific range
   python scripts/scraper.py --start 2024000 --end 2025999
 
-  # Ultra-fast mode (100 concurrent)
-  python scripts/scraper.py --concurrent 100
+  # Ultra-fast mode (200 concurrent)
+  python scripts/scraper.py --concurrent 200
 
-  # Conservative mode (slower but safer, 20 concurrent)
-  python scripts/scraper.py --concurrent 20
+  # Conservative mode (slower but safer, 50 concurrent)
+  python scripts/scraper.py --concurrent 50
 
   # Resume interrupted scraping (just run the same command again!)
   python scripts/scraper.py
