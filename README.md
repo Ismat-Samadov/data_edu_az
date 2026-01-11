@@ -520,9 +520,9 @@ See `charts/summary_statistics.txt` for detailed metrics.
 
 ---
 
-**Report Generated:** January 11, 2026
-**Data Period:** 2019-2025 (1,446 certificates)
-**For:** Business Strategy and Executive Leadership
+- **Report Generated:** January 11, 2026
+- **Data Period:** 2019-2025 (1,446 certificates)
+- **For:** Business Strategy and Executive Leadership
 
 ### Data Quality Note
 One certificate (ID: 2023273) had a data entry error (listed as 2013 instead of 2023). This has been corrected based on the certificate ID pattern matching the 2023 series.
