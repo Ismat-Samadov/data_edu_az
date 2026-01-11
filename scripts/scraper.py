@@ -224,12 +224,15 @@ class CrashProofScraper:
                 with open(self.checkpoint_file, 'r') as f:
                     checkpoint = json.load(f)
 
-                # Verify checkpoint matches data
-                if checkpoint.get('total_scraped') == len(self.scraped_ids):
-                    self.failed_ids = set(checkpoint.get('failed_ids', []))
-                    print(f"✓ Checkpoint verified (last save: {checkpoint.get('last_save')})")
+                # Load processed IDs (including 404s)
+                self.processed_ids = set(checkpoint.get('processed_ids', []))
+                self.failed_ids = set(checkpoint.get('failed_ids', []))
+
+                total_processed = checkpoint.get('total_processed', 0)
+                if total_processed > 0:
+                    print(f"✓ Checkpoint loaded: {total_processed} IDs processed (last save: {checkpoint.get('last_save')})")
                 else:
-                    print("⚠️  Checkpoint mismatch, will rebuild")
+                    print(f"✓ Checkpoint verified (last save: {checkpoint.get('last_save')})")
 
             except Exception as e:
                 print(f"⚠️  Could not load checkpoint: {e}")
@@ -263,8 +266,8 @@ class CrashProofScraper:
             semaphore: Asyncio semaphore for rate limiting
             pbar: Progress bar
         """
-        # Skip if already scraped
-        if certificate_id in self.scraped_ids:
+        # Skip if already processed
+        if certificate_id in self.processed_ids:
             pbar.update(1)
             return None
 
@@ -318,8 +321,9 @@ class CrashProofScraper:
                                 return certificate_data
 
                         elif response.status == 404:
-                            # Certificate doesn't exist - don't save
+                            # Certificate doesn't exist - mark as processed but don't save
                             pbar.update(1)
+                            self.processed_ids.add(certificate_id)
                             return None
 
                         elif response.status == 429:  # Too many requests
@@ -424,14 +428,15 @@ class CrashProofScraper:
         print(f"Range: {start_id} → {end_id}")
         print(f"Concurrent requests: {self.concurrent_limit}")
         print(f"Max retries per request: {self.max_retries}")
-        print(f"Already scraped: {len(self.scraped_ids)} certificates")
+        print(f"Already found: {len(self.scraped_ids)} valid certificates")
+        print(f"Already processed: {len(self.processed_ids)} total IDs")
         print(f"{'='*60}\n")
 
-        # Calculate IDs to scrape
+        # Calculate IDs to scrape (skip already processed, including 404s)
         total_ids = end_id - start_id + 1
-        ids_to_scrape = [i for i in range(start_id, end_id + 1) if i not in self.scraped_ids]
+        ids_to_scrape = [i for i in range(start_id, end_id + 1) if i not in self.processed_ids]
 
-        print(f"IDs to process: {len(ids_to_scrape)} (skipping {total_ids - len(ids_to_scrape)} already scraped)")
+        print(f"IDs to process: {len(ids_to_scrape)} (skipping {total_ids - len(ids_to_scrape)} already processed)")
 
         if not ids_to_scrape:
             print("No new IDs to scrape!")
@@ -495,6 +500,10 @@ class CrashProofScraper:
                         traceback.print_exc()
                         continue
 
+                    # Mark all IDs in this batch as processed
+                    for cert_id in batch:
+                        self.processed_ids.add(cert_id)
+
                     # Filter and add successful results
                     for result in results:
                         if isinstance(result, Exception):
@@ -505,19 +514,23 @@ class CrashProofScraper:
                             new_certificates.append(result)
                             self.scraped_ids.add(result['Certificate ID'])
 
-                    # Incremental save with crash protection
-                    if new_certificates:
-                        try:
+                    # ALWAYS save checkpoint after every batch (even if no certificates found)
+                    try:
+                        # Save certificates if any found
+                        if new_certificates:
                             self.certificates.extend(new_certificates)
                             df = pd.DataFrame(self.certificates)
                             # Remove duplicates
                             df = df.drop_duplicates(subset=['Certificate ID'], keep='last')
                             self._atomic_save(df)
                             new_certificates = []
-                        except Exception as e:
-                            print(f"\n❌ Save error: {e}")
-                            traceback.print_exc()
-                            # Continue scraping, will retry save next batch
+                        else:
+                            # Even if no certificates, save checkpoint to track processed IDs
+                            self._save_checkpoint()
+                    except Exception as e:
+                        print(f"\n❌ Save error: {e}")
+                        traceback.print_exc()
+                        # Continue scraping, will retry save next batch
 
                 pbar.close()
 
@@ -526,31 +539,41 @@ class CrashProofScraper:
             traceback.print_exc()
         finally:
             # ALWAYS save on exit (crash, interrupt, or normal completion)
-            if new_certificates:
-                print("\n💾 Saving final batch...")
-                try:
+            print("\n💾 Saving progress...")
+            try:
+                if new_certificates:
                     self.certificates.extend(new_certificates)
                     df = pd.DataFrame(self.certificates)
                     df = df.drop_duplicates(subset=['Certificate ID'], keep='last')
                     self._atomic_save(df)
-                except Exception as e:
-                    print(f"❌ Final save error: {e}")
+                    new_certificates = []
+                else:
+                    # Save checkpoint to persist processed IDs
+                    self._save_checkpoint()
+            except Exception as e:
+                print(f"❌ Final save error: {e}")
 
         # Print summary
         self._print_summary()
 
     def _print_summary(self):
         """Print scraping summary statistics"""
+        print(f"\n{'='*60}")
+        print(f"SCRAPING SUMMARY")
+        print(f"{'='*60}")
+        print(f"Total IDs processed: {len(self.processed_ids)}")
+        print(f"Valid certificates found: {len(self.scraped_ids)}")
+
         if not self.certificates:
-            print("\nNo certificates scraped.")
+            print(f"No valid certificates found in processed IDs (likely all 404s)")
+            if self.checkpoint_file.exists():
+                print(f"\n✓ Progress saved to checkpoint: {self.checkpoint_file}")
+            print(f"{'='*60}\n")
             return
 
         df = pd.DataFrame(self.certificates)
 
-        print(f"\n{'='*60}")
-        print(f"SCRAPING SUMMARY")
-        print(f"{'='*60}")
-        print(f"Total certificates: {len(df)}")
+        print(f"Total certificates saved: {len(df)}")
         print(f"Successful: {len(df[df['Status'] == 'Success'])}")
         print(f"No data: {len(df[df['Status'] == 'No Certificate Data'])}")
         print(f"Errors: {len(df[~df['Status'].isin(['Success', 'No Certificate Data'])])}")
