@@ -478,16 +478,16 @@ This analysis examines **1,446 verified certificate completions** from Data.edu.
 Data.edu.az has demonstrated strong historical growth and established market leadership in spreadsheet and database training. However, **the 2025 decline represents a critical inflection point** requiring immediate strategic intervention.
 
 ### Key Strengths
-✅ Dominant position in Excel and SQL training
-✅ Strong seasonal demand patterns enabling resource planning
-✅ 13-year operational track record and brand recognition
-✅ Diverse student base (1,269 unique learners)
+- ✅ Dominant position in Excel and SQL training
+- ✅ Strong seasonal demand patterns enabling resource planning
+- ✅ 13-year operational track record and brand recognition
+- ✅ Diverse student base (1,269 unique learners)
 
 ### Critical Challenges
-🔴 38% enrollment decline in 2025 (versus 2024)
-🔴 Only 13% student retention rate
-🔴 62% revenue concentration in two course categories
-🔴 Declining 12-month momentum indicator
+- 🔴 38% enrollment decline in 2025 (versus 2024)
+- 🔴 Only 13% student retention rate
+- 🔴 62% revenue concentration in two course categories
+- 🔴 Declining 12-month momentum indicator
 
 ### Path Forward
 
